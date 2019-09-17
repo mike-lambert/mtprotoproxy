@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 
 import asyncio
 import socket
@@ -107,6 +107,14 @@ def init_config():
     elif len(sys.argv) == 2:
         # launch with own config
         conf_dict = runpy.run_path(sys.argv[1])
+    elif len(sys.argv) > 4 and sys.argv[1] == 'faketls':
+        conf_dict = {}
+        conf_dict["TLS_ONLY"] = True
+        conf_dict["TLS_DOMAIN"] = sys.argv[2]
+        conf_dict["USERS"] = {"tg": sys.argv[5]}
+        conf_dict["PORT"] = int(sys.argv[3])
+        conf_dict["API_PORT"] = int(sys.argv[4])
+
     elif len(sys.argv) > 2 and sys.argv[1] == 'faketls+gensec':
         conf_dict = {}
         conf_dict["TLS_ONLY"] = True
@@ -1842,13 +1850,13 @@ def print_tg_info():
                     params_encodeded = urllib.parse.urlencode(params, safe=':')
                     link = 'tg://proxy?{}'.format(params_encodeded)
                     API_CONFIG['ACTIVATORS'].append(link)
-                    print("{}: tg://proxy?{}".format(user, link), flush=True)
+                    print("{}: {}".format(user, link), flush=True)
 
                 params = {"server": ip, "port": config.PORT, "secret": "dd" + secret}
                 params_encodeded = urllib.parse.urlencode(params, safe=':')
                 link = 'tg://proxy?{}'.format(params_encodeded)
                 API_CONFIG['ACTIVATORS'].append(link)
-                print("{}: tg://proxy?{}".format(user, link), flush=True)
+                print("{}: {}".format(user, link), flush=True)
 
             tls_secret = "ee" + secret + config.TLS_DOMAIN.encode().hex()
             # the base64 links is buggy on ios
@@ -1858,7 +1866,7 @@ def print_tg_info():
             params_encodeded = urllib.parse.urlencode(params, safe=':')
             link = 'tg://proxy?{}'.format(params_encodeded)
             API_CONFIG['ACTIVATORS'].append(link)
-            print("{}: tg://proxy?{} (new)".format(user, link), flush=True)
+            print("{}: {} (new)".format(user, link), flush=True)
 
         if secret in ["00000000000000000000000000000000", "0123456789abcdef0123456789abcdef"]:
             msg = "The default secret {} is used, this is not recommended".format(secret)

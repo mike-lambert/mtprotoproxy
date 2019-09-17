@@ -2,22 +2,20 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from threading import Thread
 import json
 
+CONFIG = {}
+
 class ServerThread(Thread):
-    def __init__(self, name, config):
+    def __init__(self, name):
         Thread.__init__(self)
         self.name = name
-        self.config = config
 
     def run(self):
-      server_class = HTTPServer
-      httpd = server_class(('127.0.0.1', self.config['API_PORT']), APIHandler(self.config))
-      httpd.server_forever()
+        global CONFIG
+        server_class = HTTPServer
+        httpd = server_class(('0.0.0.0', CONFIG['API_PORT']), APIHandler)
+        httpd.serve_forever()
 
 class APIHandler(BaseHTTPRequestHandler):
-    def __init__(self, config):
-        self.config = config
-        super().__init__()
-
     def do_HEAD(self):
         self.send_response(200)
         self.send_header('Content-Type', 'application/json')
@@ -28,11 +26,12 @@ class APIHandler(BaseHTTPRequestHandler):
         if self.path in paths:
             self.respond({'status': 200, 'content' : self.dump_config()})
         else:
-            self.respond({'status': 404})
+            self.respond({'status': 404, 'content': 'Not found'})
 
     def dump_config(self):
+        global CONFIG
         data = {
-            'deeplinks': self.config['ACTIVATORS']
+            'deeplinks': CONFIG['ACTIVATORS']
         }
         return json.dumps(data, indent=2, ensure_ascii=False)
 
@@ -48,4 +47,6 @@ class APIHandler(BaseHTTPRequestHandler):
 
 
 def start_api(config):
-    ServerThread(config).start()
+    global CONFIG
+    CONFIG = config
+    ServerThread('API Server').start()
